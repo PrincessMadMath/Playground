@@ -19,8 +19,11 @@ public static partial class ServiceCollectionExtensions
 {
     public static IServiceCollection AddPostOptions(this IServiceCollection services)
     {
-        services.AddOptions<ExternalOptions>()
-            .BindConfiguration(PostOptions.SectionName);
+        services.AddOptions<PostOptions>()
+            .PostConfigure(options =>
+            {
+                options.Value = "I am a post configure so I will stay until the end no?";
+            });
         
         services.PostConfigure<PostOptions>(options => 
             options.Value = "Order is still important here, the next PostConfigure will win :("

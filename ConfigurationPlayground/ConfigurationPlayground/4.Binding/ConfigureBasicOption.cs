@@ -1,8 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-// TODO:`Is it good idea to use this namespace?
-namespace ConfigurationPlayground._2.Binding;
+namespace ConfigurationPlayground._3.Binding;
 
 public static partial class ServiceCollectionExtensions
 {
@@ -17,7 +16,34 @@ public static partial class ServiceCollectionExtensions
         return services;
     }
     
+    // 1. We want to manually extract data from IConfiguration and configure an Options with it 
     private static IServiceCollection GetSectionAndConfigure(IServiceCollection services, IConfiguration configuration)
+    {
+        services
+            .Configure<BasicOption>(options =>
+            {
+                // Remember that configuration is a key/value pair of string
+                var countStr = configuration[$"{BasicOption.SectionName}:Count"];
+                if (Int32.TryParse(countStr, out var count))
+                {
+                    // Mutate the state
+                    options.Count = count;
+                }
+                
+                var nameStr = configuration[$"{BasicOption.SectionName}:Name"];
+                
+                // Don't update state if name is null
+                if (nameStr != null)
+                {
+                    options.Name = nameStr;
+                }
+            });
+
+        return services;
+    }
+    
+    // 2. Let use the more friendly Get<>: is the behavior the same?
+    private static IServiceCollection GetSectionAndConfigure2(IServiceCollection services, IConfiguration configuration)
     {
         services
             .Configure<BasicOption>(options =>
@@ -38,7 +64,28 @@ public static partial class ServiceCollectionExtensions
         return services;
     }
     
-    // Example on how we can chained configuration XYZ
+    // 3. Sneak peak at Bind!
+    private static IServiceCollection Exemple(IServiceCollection services, IConfiguration configuration)
+    {
+        var basicOption = new BasicOption
+        {
+            Name = "A",
+            Count = 1,
+        };
+        
+        // The section will contains: "Name"="B"
+        configuration.GetSection(BasicOption.SectionName).Bind(basicOption);
+        
+        /*
+         * The result will be:
+         * basicOption.Name = "B"
+         * basicOption.Count = 1
+         */
+        
+        return services;
+    }
+    
+    // 4. Let's put bind in a configure delegate!
     private static IServiceCollection ManualBinding(IServiceCollection services, IConfiguration configuration)
     {
         services
@@ -51,27 +98,7 @@ public static partial class ServiceCollectionExtensions
         return services;
     }
     
-    private static IServiceCollection Exemple(IServiceCollection services, IConfiguration configuration)
-    {
-        /*
-         * If in the IConfiguration we have: "Basic:Name"="B"
-         *
-         * The result will be:
-         * basicOption.Name = "B"
-         * basicOption.Count = 1
-         */
-        
-        var basicOption = new BasicOption
-        {
-            Name = "A",
-            Count = 1,
-        };
-        
-        configuration.GetSection(BasicOption.SectionName).Bind(basicOption);
-        
-        return services;
-    }
-    
+    // 5. MORE SUGAR SYNTAX!
     private static IServiceCollection WithConfigure(IServiceCollection services, IConfiguration configuration)
     {
         // Same things
@@ -81,6 +108,7 @@ public static partial class ServiceCollectionExtensions
         return services;
     }
 
+    // 5. MOOOORE!!!! 
     private static IServiceCollection WithBind(IServiceCollection services, IConfiguration configuration)
     {
         // Same things but different
@@ -90,6 +118,7 @@ public static partial class ServiceCollectionExtensions
         return services;
     }
     
+    // 6. Pls yeet GetSection + introduce a bug with named options pls!
     private static IServiceCollection WithBindConfiguration(IServiceCollection services)
     {
         // Same things but do not need IConfiguration anymore

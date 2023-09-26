@@ -8,14 +8,11 @@ public static partial class ServiceCollectionExtensions
 {
     public static IServiceCollection AddValidatedOption(this IServiceCollection services)
     {
-        // Using IValidateOptions
-        // For complex scenario
-        // TODO can it get injected things?
         services
             .AddOptions<ValidatedOptions>()
-            .BindConfiguration(ValidatedOptions.SectionName)
-            .ValidateDataAnnotations() // Using Data Annotation duh
-            .Validate(options => // Using delegate = allow more flexibility
+            .BindConfiguration(ValidatedOptions.SectionName) // Ignore Bind for now
+            .ValidateDataAnnotations() // 1. Let's peek inside! (only register IValidateOptions)
+            .Validate(options => // 2. Can still use delegate for a bit more allow more flexibility, peek!
             {
                 if (options.NumberA + options.NumberB != options.Sum)
                 {
@@ -25,9 +22,9 @@ public static partial class ServiceCollectionExtensions
                 return true;
         
             }, "Sum is not correct") // Can return error message
-            .ValidateOnStart(); // Validate when application start not now
+            .ValidateOnStart(); // 4. Register a hosted service + configure an other option with type + name meta!
         
-        // The IValidateOptions can be injected services from the DI
+        // 3. Can also manually register a IValidateOptions which will give access to the DI
         services.AddSingleton<InjectedValidator>();
         services.AddSingleton<IValidateOptions<ValidatedOptions>, OptionValidator>();
         

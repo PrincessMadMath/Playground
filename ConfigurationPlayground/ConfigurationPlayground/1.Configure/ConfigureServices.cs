@@ -2,7 +2,7 @@
 
 public class ConfigureServices
 {
-    public string GetValue()
+    public string? GetValue()
     {
         return "1234";
     }

@@ -6,6 +6,6 @@ public class PostOptionsConfigurator: IPostConfigureOptions<PostOptions>
 {
     public void PostConfigure(string? name, PostOptions options)
     {
-        options.Value = "PostConfiguration will always be the last one, except if multiple PostConfiguration are registered";
+        options.Value = "A postConfiguration will always be the last one, except if multiple PostConfiguration are registered, then far west!";
     }
 }

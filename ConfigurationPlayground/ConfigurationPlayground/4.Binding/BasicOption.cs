@@ -1,4 +1,4 @@
-﻿namespace ConfigurationPlayground._2.Binding;
+﻿namespace ConfigurationPlayground._3.Binding;
 
 public class BasicOption
 {

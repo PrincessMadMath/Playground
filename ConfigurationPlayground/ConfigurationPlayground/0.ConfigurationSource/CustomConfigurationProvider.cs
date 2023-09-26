@@ -10,7 +10,7 @@ public class CustomConfigurationProvider: ConfigurationProvider
     
     public CustomConfigurationProvider()
     {
-        _timer = new Timer(StartMonitor, null, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(10));
+        _timer = new Timer(StartMonitor, null, TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(10));
     }
     
     public override void Load()

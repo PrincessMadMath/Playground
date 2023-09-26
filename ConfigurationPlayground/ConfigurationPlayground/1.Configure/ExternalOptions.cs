@@ -2,5 +2,5 @@
 
 public class ExternalOptions
 {
-    public string ConfiguredOptions { get; set; }
+    public string? ConfiguredOptions { get; set; }
 }

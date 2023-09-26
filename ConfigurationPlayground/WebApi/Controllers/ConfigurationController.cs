@@ -1,6 +1,6 @@
 using ConfigurationPlayground._0.ConfigurationSource;
 using ConfigurationPlayground._1.Configure;
-using ConfigurationPlayground._2.Binding;
+using ConfigurationPlayground._3.Binding;
 using ConfigurationPlayground._3.PostConfigure;
 using ConfigurationPlayground._4.ValidatedOptions;
 using ConfigurationPlayground._5.NamedOptions;
@@ -21,6 +21,7 @@ public class ConfigurationController : ControllerBase
     private readonly IOptionsSnapshot<BasicOption> _basicOptions;
     private readonly IOptionsSnapshot<ValidatedOptions> _validatedOptions;
     private readonly IOptionsSnapshot<NamedOptions> _namedOptions;
+    private readonly IOptionsMonitor<ProblemNamedOptions> _problemNamedOptionsMonitor;
     private readonly IOptionsSnapshot<ProblemNamedOptions> _problemNamedOptions;
     private readonly IOptionsSnapshot<ExternalOptions> _configurableOptions;
     private readonly IOptionsSnapshot<PostOptions> _postOptions;
@@ -35,6 +36,7 @@ public class ConfigurationController : ControllerBase
         IOptionsSnapshot<BasicOption> basicOptions, 
         IOptionsSnapshot<ValidatedOptions> validatedOptions, 
         IOptionsSnapshot<NamedOptions> namedOptions,
+        IOptionsMonitor<ProblemNamedOptions> problemNamedOptionsMonitor,
         IOptionsSnapshot<ProblemNamedOptions> problemNamedOptions,
         IOptionsSnapshot<ExternalOptions> configurableOptions,
         IOptionsSnapshot<PostOptions> postOptions,
@@ -48,6 +50,7 @@ public class ConfigurationController : ControllerBase
         _basicOptions = basicOptions;
         _validatedOptions = validatedOptions;
         _namedOptions = namedOptions;
+        this._problemNamedOptionsMonitor = problemNamedOptionsMonitor;
         _problemNamedOptions = problemNamedOptions;
         _configurableOptions = configurableOptions;
         _postOptions = postOptions;
@@ -96,11 +99,18 @@ public class ConfigurationController : ControllerBase
     [HttpGet("problemNamedOptions")]
     public ActionResult<ProblemNamedOptions> GetProblemNamedOptions()
     {
-        var namedOption = this._problemNamedOptions.Get("OHOH");
+        var namedOptionFromSnapshot = this._problemNamedOptions.Get("OHOH");
+        var namedOptionFromMonitor = this._problemNamedOptionsMonitor.Get("OHOH");
+        
+        var namedOptionFromSnapshot2 = this._problemNamedOptions.Get("OHOH2");
+        var namedOptionFromMonitor2 = this._problemNamedOptionsMonitor.Get("OHOH2");
         
         return this.Ok(new 
         {
-            namedOption
+            namedOptionFromSnapshot,
+            namedOptionFromMonitor,
+            namedOptionFromSnapshot2,
+            namedOptionFromMonitor2
         });
     }
     
@@ -149,6 +159,8 @@ public class ConfigurationController : ControllerBase
     [HttpGet("lazyLoading")]
     public ActionResult<FactoryOptions> TriggerScopedEmptyClasses()
     {
+        var rawConfiguration = this._configuration[$"{LazyOptions.SectionName}:GuessMyValue"];
+        
         var fromConfiguration = this._configuration
             .GetSection(LazyOptions.SectionName).Get<LazyOptions>()?.GuessMyValue;
         

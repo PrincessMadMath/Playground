@@ -25,8 +25,13 @@ public static class Startup
     // TODO: Is it only middleware or something pipelines?
     public static WebApplication ConfigureMiddleware(this WebApplication app)
     {
-        // TODO: Why is it not required?
+        // Route Matching Middleware: find best endpoint based on the request
+        // When using WebApplicationBuilder it is automatically added
         // app.UseRouting();
+        
+        // Add endpoints execution to the middleware pipeline
+        // When using WebApplicationBuilder it is automatically added
+        // app.UseEndpoints();
 
         // ** Error Handling **
         
@@ -44,18 +49,26 @@ public static class Startup
             app.UseDeveloperExceptionPage();
         }
         
+        if (!app.Environment.IsDevelopment())
+        {
+            // Enforce HTTPS
+            app.UseHsts();
+        }
+        
         // TODO: Health check
         
         app.UseOpenApi();
         
         // Minimal API Example
+        // Define an endpoint: something that can be selected by matching URL and executed
         app
             .MapGet("/", () => "Hello World!")
             .WithName("GetHelloWorld")
             .WithSummary("Hello world from a minimal API!")
+            //.RequireAuthorization() // You can add metadata to endpoint which can be used by middleware
             .WithOpenApi();
         
-        // Controllers Example
+        // Define endpoints for convention based controllers
         app.MapControllers();
         
         

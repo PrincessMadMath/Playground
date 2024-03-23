@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Api.HttpClients;
 using Api.Utils;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,10 +11,12 @@ namespace Api.Controllers;
 public class HttpFactoryController: ControllerBase
 {
     private readonly HttpClient _httpClient;
+    private readonly HttpClient _customClient;
 
-    public HttpFactoryController(HttpClient httpClient)
+    public HttpFactoryController(HttpClient httpClient, IHttpClientFactory httpClientFactory)
     {
         _httpClient = httpClient;
+        _customClient = httpClientFactory.CreateClient(HttpClientConfigureExtensions.Custom);
     }
     
     [HttpGet]
@@ -24,6 +27,34 @@ public class HttpFactoryController: ControllerBase
         
         // Will load the entire response into memory before deserialising
         var content = await this._httpClient.GetFromJsonAsync<EntryContent>("https://api.publicapis.org/entries");
+        
+        return this.Ok(content.Entries);
+    }
+    
+    [HttpGet]
+    [Route("source-generation")]
+    public async Task<IActionResult> SourceGenerationDeserialisation()
+    {
+        var stopwatch = Stopwatch.StartNew();   
+        
+        // Will load the entire response into memory before deserialising
+        var stream = await this._httpClient.GetStreamAsync("https://api.publicapis.org/entries");
+
+        var content = await JsonSerializer.DeserializeAsync<EntryContent>(stream, EntryContentGenerationContext.Default.EntryContent);
+        
+        return this.Ok(content.Entries);
+    }
+    
+    [HttpGet]
+    [Route("source-generation")]
+    public async Task<IActionResult> SourceGenerationDeserialisationo()
+    {
+        var stopwatch = Stopwatch.StartNew();   
+        
+        // Will load the entire response into memory before deserialising
+        var stream = await this._httpClient.GetStreamAsync("https://api.publicapis.org/entries");
+
+        var content = await JsonSerializer.DeserializeAsync<EntryContent>(stream, EntryContentGenerationContext.Default.EntryContent);
         
         return this.Ok(content.Entries);
     }
@@ -73,6 +104,7 @@ public class HttpFactoryController: ControllerBase
         yield break;
     }
     
+ 
     public class EntryContent
     {
         [JsonPropertyName("count")]
@@ -106,4 +138,9 @@ public class HttpFactoryController: ControllerBase
         [JsonPropertyName("Links")]
         public string Link { get; set; }
     }
+}
+
+[JsonSerializable(typeof(HttpFactoryController.EntryContent))]
+internal partial class EntryContentGenerationContext : JsonSerializerContext
+{
 }

@@ -6,25 +6,25 @@ namespace Benchmark.Json.Models;
 
 public class BenchmarkItem
 {
-    [JsonPropertyName("API")] 
+    [JsonPropertyName("API")]
     public string Api { get; set; }
 
-    [JsonPropertyName("Description")] 
+    [JsonPropertyName("Description")]
     public string Description { get; set; }
 
-    [JsonPropertyName("Auth")] 
+    [JsonPropertyName("Auth")]
     public string Auth { get; set; }
 
-    [JsonPropertyName("HTTPS")] 
+    [JsonPropertyName("HTTPS")]
     public bool Https { get; set; }
 
-    [JsonPropertyName("Cors")] 
+    [JsonPropertyName("Cors")]
     public string Cors { get; set; }
 
-    [JsonPropertyName("Category")] 
+    [JsonPropertyName("Category")]
     public string Category { get; set; }
 
-    [JsonPropertyName("Links")] 
+    [JsonPropertyName("Links")]
     public string Link { get; set; }
 }
 

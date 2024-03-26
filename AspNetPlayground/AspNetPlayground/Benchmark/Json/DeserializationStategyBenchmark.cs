@@ -1,6 +1,8 @@
 ﻿using System.Net.Http.Json;
 using System.Text.Json;
+
 using Benchmark.Json.Models;
+
 using BenchmarkDotNet.Attributes;
 
 namespace Benchmark.Json;
@@ -8,7 +10,6 @@ namespace Benchmark.Json;
 // Source generation OR reflection based deserialization
 // https://devblogs.microsoft.com/dotnet/try-the-new-system-text-json-source-generator/
 // https://www.youtube.com/watch?v=HhyBaJ7uisU
-
 /*
 | Method                               | Count | Mean      | Error     | StdDev    | Ratio | RatioSD | Gen0     | Gen1     | Gen2     | Allocated  | Alloc Ratio |
 |------------------------------------- |------ |----------:|----------:|----------:|------:|--------:|---------:|---------:|---------:|-----------:|------------:|
@@ -26,14 +27,16 @@ Not sure of quality of benchmark since first deserialization has been Jitted I t
  */
 
 [MemoryDiagnoser]
-[SimpleJob(launchCount: 1, warmupCount: 5, iterationCount: 10)]
+[SimpleJob(1, 5, 10)]
 public class DeserializationStrategyBenchmark
 {
     private HttpClient _httpClient = null!;
-    
-    [Params( 5, 10000)]
+
+    [Params(5, 10000)]
     public int Count = 10;
-    
+
+    private string QueryUri => $"Benchmark/content?count={this.Count}";
+
     [GlobalSetup]
     public void Setup()
     {
@@ -44,35 +47,34 @@ public class DeserializationStrategyBenchmark
     [GlobalCleanup]
     public void Cleanup()
     {
-        _httpClient.Dispose();
+        this._httpClient.Dispose();
     }
-    
-    private string QueryUri => $"Benchmark/content?count={this.Count}";
-    
+
     [Benchmark(Baseline = true)]
     public async Task GetStringThenDeserialize()
     {
-        var stringContent = await this._httpClient.GetStringAsync(QueryUri);
-        var result = JsonSerializer.Deserialize<BenchmarkContent>(stringContent);
+        string stringContent = await this._httpClient.GetStringAsync(requestUri: this.QueryUri);
+        BenchmarkContent? result = JsonSerializer.Deserialize<BenchmarkContent>(json: stringContent);
     }
-    
+
     [Benchmark]
     public async Task GetStreamThenDeserialize()
     {
-        var stream = await this._httpClient.GetStreamAsync(QueryUri);
-        var result = await JsonSerializer.DeserializeAsync<BenchmarkContent>(stream);
+        Stream stream = await this._httpClient.GetStreamAsync(requestUri: this.QueryUri);
+        BenchmarkContent? result = await JsonSerializer.DeserializeAsync<BenchmarkContent>(utf8Json: stream);
     }
-    
+
     [Benchmark]
     public async Task GetFromJsonAsync()
     {
-        var result = await this._httpClient.GetFromJsonAsync<BenchmarkContent>(QueryUri);
+        BenchmarkContent? result = await this._httpClient.GetFromJsonAsync<BenchmarkContent>(requestUri: this.QueryUri);
     }
-    
+
     [Benchmark]
     public async Task GetFromJsonAsyncWithSourceGeneration()
     {
         // Will deserialize the response as it is being read
-        var result = await this._httpClient.GetFromJsonAsync(QueryUri, BenchmarkEntryContentGenerationContext.Default.BenchmarkContent);
+        BenchmarkContent? result = await this._httpClient.GetFromJsonAsync(requestUri: this.QueryUri,
+            jsonTypeInfo: BenchmarkEntryContentGenerationContext.Default.BenchmarkContent);
     }
 }

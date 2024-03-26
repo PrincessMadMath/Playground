@@ -1,6 +1,6 @@
 ﻿namespace Api.HttpClients;
 
-public class RandomHeaderHandler: DelegatingHandler
+public class RandomHeaderHandler : DelegatingHandler
 {
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {

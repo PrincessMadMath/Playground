@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace Api.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class HelloWorldController: ControllerBase
+public class HelloWorldController : ControllerBase
 {
     [HttpGet]
     [Route("hello")]
@@ -13,6 +14,6 @@ public class HelloWorldController: ControllerBase
     [ProducesResponseType<string>(200)]
     public IActionResult Get()
     {
-        return Ok("Hello World!");
+        return this.Ok("Hello World!");
     }
 }

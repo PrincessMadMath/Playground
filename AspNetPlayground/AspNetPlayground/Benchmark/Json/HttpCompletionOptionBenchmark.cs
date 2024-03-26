@@ -1,11 +1,12 @@
 ﻿using System.Text.Json;
+
 using Benchmark.Json.Models;
+
 using BenchmarkDotNet.Attributes;
 
 namespace Benchmark.Json;
 
 // https://www.stevejgordon.co.uk/using-httpcompletionoption-responseheadersread-to-improve-httpclient-performance-dotnet
-
 /*
 | Method              | Count | Path                 | Mean      | Error     | StdDev    | Ratio | RatioSD | Gen0      | Gen1      | Gen2      | Allocated  | Alloc Ratio |
 |-------------------- |------ |--------------------- |----------:|----------:|----------:|------:|--------:|----------:|----------:|----------:|-----------:|------------:|
@@ -36,19 +37,20 @@ namespace Benchmark.Json;
 
  */
 
-
 [MemoryDiagnoser]
 [SimpleJob(launchCount: 1, warmupCount: 5, iterationCount: 10)]
 public class HttpCompletionOptionBenchmark
 {
     private HttpClient _httpClient = null!;
-    
-    [Params( 5, 10000)]
+
+    [Params(5, 10000)]
     public int Count = 10;
-    
-    [Params( "list-items", "enumerable-items", "async-enumerable-items")]
+
+    [Params("list-items", "enumerable-items", "async-enumerable-items")]
     public string Path = string.Empty;
-    
+
+    private string QueryUri => $"Benchmark/{this.Path}?count={this.Count}";
+
     [GlobalSetup]
     public void Setup()
     {
@@ -59,39 +61,37 @@ public class HttpCompletionOptionBenchmark
     [GlobalCleanup]
     public void Cleanup()
     {
-        _httpClient.Dispose();
+        this._httpClient.Dispose();
     }
-    
-    private string QueryUri => $"Benchmark/{Path}?count={this.Count}";
-    
+
     [Benchmark(Baseline = true)]
     public async Task ReadCompleteContent()
     {
         // Need to insure the dispose of response since is blocking OS resource: socket
-        using var response = await this._httpClient.GetAsync(QueryUri, HttpCompletionOption.ResponseContentRead);
-        
-        var stream = await response.Content.ReadAsStreamAsync();
-        var result = await JsonSerializer.DeserializeAsync<BenchmarkItem[]>(stream);
+        using HttpResponseMessage response =
+            await this._httpClient.GetAsync(this.QueryUri, HttpCompletionOption.ResponseContentRead);
+
+        Stream stream = await response.Content.ReadAsStreamAsync();
+        BenchmarkItem[]? result = await JsonSerializer.DeserializeAsync<BenchmarkItem[]>(stream);
     }
-   
+
     [Benchmark]
     public async Task ReadHeadersOnly()
     {
         // Need to insure the dispose of response since is blocking OS resource: socket
-        using var response = await this._httpClient.GetAsync(QueryUri, HttpCompletionOption.ResponseHeadersRead);
-        
-        var stream = await response.Content.ReadAsStreamAsync();
-        var result = await JsonSerializer.DeserializeAsync<BenchmarkItem[]>(stream);
+        using HttpResponseMessage response =
+            await this._httpClient.GetAsync(this.QueryUri, HttpCompletionOption.ResponseHeadersRead);
+
+        Stream stream = await response.Content.ReadAsStreamAsync();
+        BenchmarkItem[]? result = await JsonSerializer.DeserializeAsync<BenchmarkItem[]>(stream);
     }
-    
+
     [Benchmark]
     public async Task WithGetStreamAsync()
     {
         // Need to insure the dispose of response since is blocking OS resource: socket
-        await using var stream = await this._httpClient.GetStreamAsync(QueryUri);
-        
-        var result = await JsonSerializer.DeserializeAsync<BenchmarkItem[]>(stream);
-    }
-    
+        await using Stream stream = await this._httpClient.GetStreamAsync(this.QueryUri);
 
+        BenchmarkItem[]? result = await JsonSerializer.DeserializeAsync<BenchmarkItem[]>(stream);
+    }
 }

@@ -2,6 +2,7 @@
 
 using Benchmark;
 using Benchmark.Json;
+
 using BenchmarkDotNet.Running;
 
 BenchmarkRunner.Run<DeserializationStrategyBenchmark>();

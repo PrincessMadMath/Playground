@@ -59,4 +59,7 @@ Come from the need of standardize error response. (https://datatracker.ietf.org/
 
 More details: https://timdeschryver.dev/blog/translating-exceptions-into-problem-details-responses#default-problem-detail-extensions
 
-#### 
+### Linting
+
+`dotnet format`
+Good doc: https://www.jetbrains.com/help/resharper/EditorConfig_Index.html

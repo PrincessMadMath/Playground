@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Http;
+
 using Polly;
 using Polly.Extensions.Http;
 
@@ -38,13 +39,13 @@ public static class HttpClientConfigureExtensions
             })
             .AddStandardResilienceHandler() // From Microsoft.Extensions.Http.Resilience
             ;
-        
+
         // Can later configure the HttpClientFactoryOptions for the same name
         services.Configure<HttpClientFactoryOptions>(Custom, options =>
         {
             options.ShouldRedactHeaderValue = s =>
             {
-                if(string.Equals(s, "Authorization", StringComparison.InvariantCultureIgnoreCase))
+                if (string.Equals(s, "Authorization", StringComparison.InvariantCultureIgnoreCase))
                 {
                     return true;
                 }

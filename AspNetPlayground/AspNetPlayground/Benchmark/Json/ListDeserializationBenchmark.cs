@@ -1,6 +1,8 @@
 ﻿using System.Net.Http.Json;
 using System.Text.Json;
+
 using Benchmark.Json.Models;
+
 using BenchmarkDotNet.Attributes;
 
 namespace Benchmark.Json;
@@ -41,13 +43,13 @@ TLDR: When deserializing a list of items choose GetFromJsonAsAsyncEnumerable for
 public class ListDeserializationBenchmark
 {
     private HttpClient _httpClient = null!;
-    
-    [Params( 5, 10000)]
+
+    [Params(5, 10000)]
     public int Count = 10;
-    
-    [Params( "list-items", "enumerable-items", "async-enumerable-items")]
+
+    [Params("list-items", "enumerable-items", "async-enumerable-items")]
     public string Path = string.Empty;
-    
+
     [GlobalSetup]
     public void Setup()
     {
@@ -58,29 +60,29 @@ public class ListDeserializationBenchmark
     [GlobalCleanup]
     public void Cleanup()
     {
-        _httpClient.Dispose();
+        this._httpClient.Dispose();
     }
-    
-    private string QueryUri => $"Benchmark/{Path}?count={this.Count}";
-    
+
+    private string QueryUri => $"Benchmark/{this.Path}?count={this.Count}";
+
     [Benchmark(Baseline = true)]
     public async Task GetStringThenDeserialize()
     {
-        var stringContent = await this._httpClient.GetStringAsync(QueryUri);
+        var stringContent = await this._httpClient.GetStringAsync(this.QueryUri);
         var result = JsonSerializer.Deserialize<BenchmarkItem[]>(stringContent);
     }
-    
+
     [Benchmark]
     public async Task GetFromJsonAsync()
     {
-        var result = await this._httpClient.GetFromJsonAsync<BenchmarkItem[]>(QueryUri);
+        var result = await this._httpClient.GetFromJsonAsync<BenchmarkItem[]>(this.QueryUri);
     }
-    
+
     // Use the lowest memory footprint for list
     [Benchmark]
     public async Task GetFromJsonAsAsyncEnumerable()
     {
-        var result = this._httpClient.GetFromJsonAsAsyncEnumerable<BenchmarkItem>(QueryUri);
+        var result = this._httpClient.GetFromJsonAsAsyncEnumerable<BenchmarkItem>(this.QueryUri);
         await foreach (var item in result)
         {
             // Do nothing

@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Net;
+
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers;
@@ -12,14 +13,15 @@ namespace Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("[controller]")]
-public class OpenApiController: ControllerBase
+public class OpenApiController : ControllerBase
 {
+
     [HttpGet]
     [Route("get-example")]
-    [ProducesResponseType<ExampleResponse>((int) HttpStatusCode.OK)]
-    [ProducesResponseType<ProblemDetails>((int) HttpStatusCode.BadRequest)]
-    [ProducesResponseType((int) HttpStatusCode.TooManyRequests)]
-    [ProducesResponseType((int) HttpStatusCode.InternalServerError)]
+    [ProducesResponseType<ExampleResponse>((int)HttpStatusCode.OK)]
+    [ProducesResponseType<ProblemDetails>((int)HttpStatusCode.BadRequest)]
+    [ProducesResponseType((int)HttpStatusCode.TooManyRequests)]
+    [ProducesResponseType((int)HttpStatusCode.InternalServerError)]
     public IActionResult Get([FromQuery] ExampleRequest request)
     {
         switch (request.Type)
@@ -27,18 +29,18 @@ public class OpenApiController: ControllerBase
             case ResponseType.Ok:
                 return this.Ok(new ExampleResponse { Message = request.Count.ToString() });
             case ResponseType.BadRequest:
-                return Problem("This is a bad request.", statusCode: (int) HttpStatusCode.BadRequest);
+                return this.Problem("This is a bad request.", statusCode: (int)HttpStatusCode.BadRequest);
             case ResponseType.TooManyRequests:
                 // Missing how to add Retry-After header description in OpenAPI
                 this.Response.Headers.Append("Retry-After", "120");
-                return StatusCode((int)HttpStatusCode.TooManyRequests);
+                return this.StatusCode((int)HttpStatusCode.TooManyRequests);
             case ResponseType.Exception:
                 throw new Exception("This is an example error.");
             default:
                 throw new ArgumentOutOfRangeException();
         }
     }
-    
+
     [HttpPost]
     [Route("post-example")]
     public IActionResult Post(ExampleRequest request)
@@ -48,27 +50,27 @@ public class OpenApiController: ControllerBase
             case ResponseType.Ok:
                 return this.Ok(new ExampleResponse { Message = request.Count.ToString() });
             case ResponseType.BadRequest:
-                return Problem("This is a bad request.", statusCode: (int) HttpStatusCode.BadRequest);
+                return this.Problem("This is a bad request.", statusCode: (int)HttpStatusCode.BadRequest);
             case ResponseType.TooManyRequests:
                 this.Response.Headers.Append("Retry-After", "120");
-                return StatusCode((int)HttpStatusCode.TooManyRequests);
+                return this.StatusCode((int)HttpStatusCode.TooManyRequests);
             case ResponseType.Exception:
                 throw new Exception("This is an example error.");
             default:
                 throw new ArgumentOutOfRangeException();
         }
     }
-        
+
     public class ExampleRequest
     {
         [Required]
         public ResponseType Type { get; set; }
-        
+
         [Required]
         [Range(0, 10)]
         public int Count { get; set; }
     }
-    
+
     public enum ResponseType
     {
         Ok,
@@ -76,10 +78,10 @@ public class OpenApiController: ControllerBase
         TooManyRequests,
         Exception,
     }
-    
+
     public class ExampleResponse
     {
-        [Required] 
+        [Required]
         public string Message { get; set; } = string.Empty;
     }
 }
